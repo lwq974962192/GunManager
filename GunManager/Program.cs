@@ -21,7 +21,6 @@ namespace GunManager
             //用于加载引用的dll资源
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
-
                 String resourceName = "GunManager.lib." + new AssemblyName(args.Name).Name + ".dll";
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
                 {
@@ -30,7 +29,6 @@ namespace GunManager
                     return Assembly.Load(assemblyData);
                 }
             };
-
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Login());

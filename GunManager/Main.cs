@@ -16,9 +16,7 @@ using TagReaderLibrary;
 //枪支归库
 //枪支维护
 //枪支注销
-//枪支监控
-//枪支盘点
-//
+
 
 namespace GunManager
 {
@@ -62,7 +60,6 @@ namespace GunManager
         public String username = null;
         Boolean IsConnected = false;
         Boolean IsMonitor = false;
-
         ISO15693Reader reader = new ISO15693Reader();
 
         public Main()
@@ -111,11 +108,9 @@ namespace GunManager
             {
                 num = main_tab.SelectedIndex;
             }
-            //MessageBox.Show("tabpage index :  " + num);
 
             dataTable = new DataTable();
             adapter = new OleDbDataAdapter(sql[num], connection);
-            // MessageBox.Show(sql[num]);
             try
             {
                 adapter.Fill(dataTable);
@@ -127,20 +122,12 @@ namespace GunManager
                         String headText = dataGrid.Columns[i].HeaderText;
                         if (headText.Contains("Time"))
                         {
-                            //MessageBox.Show(headText);
                             dataGrid.Columns[i].DefaultCellStyle.Format = "yyyy.MM.dd  HH:mm:ss";
                         }
                     }
-                    /*for(int i = 0; i < dataTable.Rows.Count; i++)
-                    {
-                        MessageBox.Show("datatable : " + dataTable.Rows[i]["" + key[num] + ""].ToString());
-                    }*/
-                    //MessageBox.Show("datatable : "+dataTable.Rows[1][""+key[num]+""].ToString());
-                    //MessageBox.Show(""+dataTable.Rows.Count);
                     dataGrid.Columns[key[num]].DisplayIndex = 0;
                     for (int i = 0; i < dataGrid.Rows.Count - 1; i++)
                     {
-                        //MessageBox.Show(dataGrid.Rows[i].Cells[0].Value.ToString());
                         allLogs.Add(dataGrid.Rows[i].Cells[0].Value.ToString());
                     }
 
@@ -167,7 +154,6 @@ namespace GunManager
                 command = null;
                 reader = null;
             }
-            //MessageBox.Show(sender.ToString());
 
             Application.ExitThread();
         }
@@ -240,7 +226,6 @@ namespace GunManager
                     else
                     {
                         int close_value = 0;
-                        //reader.CloseSerialPort();
                         if (close_value == 0)
                         {
                             IsConnected = false;
@@ -249,10 +234,8 @@ namespace GunManager
                             main_close_com.Enabled = false;
                             main_in_button.Enabled = false;
                             main_out_button.Enabled = false;
-                            //main_in_read.Enabled = false;
                             monitor_start.Enabled = false;
                             monitor_stop.Enabled = false;
-                            // main_tag_id.Enabled = false;
 
                         }
                         else
@@ -272,7 +255,6 @@ namespace GunManager
                     foreach (string id in list)
                     {
                         if (n == 0)
-                            //MessageBox.Show(n + "");
                         s = String.Format("delete from " + table[n] + " where " + key[n] + " = '{0}'", id);
 
                         if (n != 0)
@@ -281,11 +263,9 @@ namespace GunManager
                             s = String.Format("delete from " + table[n] + " where FORMAT(" + key[n] + ",'yyyy.MM.dd HH:mm:ss') = '{0}'", id);
                         }
                         //"delete from [Gun] where TagId = "+TagId;
-                        //MessageBox.Show("to del : index"+n+" sql : " +s);
                         command = new OleDbCommand(s, connection);
                         int num = command.ExecuteNonQuery();
                         command = null;
-                        //MessageBox.Show("您已成功删除" + num + "条记录");
                         main_remain.Text = String.Format("您已成功删除 {0} 条记录", num);
                     }
                     break;
@@ -338,7 +318,6 @@ namespace GunManager
             main_tag_id= tagNumber[0];
             main_remain.Text = "读取成功";
             main_doc_id.Enabled = true;
-            //main_tag_id = "000111000";
             main_text_append(main_tag_id);
         }
 
@@ -369,7 +348,6 @@ namespace GunManager
             dataReader = command.ExecuteReader();
             if (dataReader.Read())
             {
-                //MessageBox.Show("有");
                 command = null;
                 dataReader = null;
                 return true;
@@ -393,7 +371,6 @@ namespace GunManager
             dataReader = command.ExecuteReader();
             if (dataReader.Read())
             {
-                //MessageBox.Show("有");
                 main_doc_id.Enabled = false;
                 main_in_button.Enabled = false;
                 main_doc_id.Text = (String)dataReader["DocName"];
@@ -459,7 +436,6 @@ namespace GunManager
 
             if (!hasThisGun(main_tag_id))
             {
-                //MessageBox.Show("没有");
                 main_tab.SelectTab(0);
             }
             else
@@ -592,7 +568,6 @@ namespace GunManager
             else
 
             {
-                //MessageBox.Show("没有");
                 main_tab.SelectTab(0);
             }
 
@@ -644,7 +619,6 @@ namespace GunManager
             else
 
             {
-               // MessageBox.Show("没有");
                 main_tab.SelectTab(0);
             }
         }
@@ -699,116 +673,14 @@ namespace GunManager
         private void monitor_start_Click(object sender, EventArgs e)
         {
 
-            if (IsConnected == false)
-            {
-                main_remain.Text = "未连接设备";
-                return;
-            }
-            IsMonitor = true;
-            if (thread_Monitor == null)
-            {
-                readFromDb(0);
-                thread_Monitor = new Thread(new ThreadStart(ThreadMonitor));
-                thread_Monitor.Start();
-
-            }
-            main_remain.Text = "枪支监控已经启动！！！";
-
-
+          
 
         }
 
         private void monitor_stop_Click(object sender, EventArgs e)
         {
-            if (IsConnected == false)
-            {
-                main_remain.Text = "未连接设备";
-                return;
-            }
-            if (!IsMonitor)
-            {
-                main_remain.Text = "枪支监控未曾启动";
-                return;
-            }
-            IsMonitor = false;
-            waitHandle.Reset();
-            Thread thread = new Thread(new ThreadStart(ThreadReport));
+          
         }
 
-        private void ThreadMonitor()
-        {
-            List<String> arrayList = new List<string>();
-            waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-            int tagCount = 0;
-            String[] tagNumber = new String[0];
-            int index = 0;
-            while (IsMonitor)
-            {
-                arrayList.Clear();
-                arrayList.AddRange(allLogs);
-                int value = reader.Inventory(ISO15693Reader.ModulateMethod.ASK, ISO15693Reader.InventoryModel.Multiple, ref tagCount, ref tagNumber);
-                if (value == 0x11)
-                {
-                    main_remain.Text = String.Format("所有{0}把枪支离开了监控范围", allLogs.Count);
-                }
-                else
-                {
-                    if (value > 0)
-                    {
-                        main_remain.Text = String.Format("监控命令执行异常，错误代码为{0}!", value);
-                        continue;
-                    }
-                    foreach (String tag in tagNumber)
-                    {
-                        index = arrayList.IndexOf(tag);
-                        if (index >= 0)
-                        {
-                            arrayList.RemoveAt(index);
-                        }
-                    }
-                }
-
-                value = reader.Inventory(ISO15693Reader.ModulateMethod.FSK, ISO15693Reader.InventoryModel.Multiple, ref tagCount, ref tagNumber);
-                if (value == 0x11)
-                {
-                    main_remain.Text = String.Format("监控命令执行异常，错误代码为{0}!", value);
-                    continue;
-                }
-                foreach (String tag in tagNumber)
-                {
-                    index = arrayList.IndexOf(tag);
-                    if (index > 0)
-                    {
-                        arrayList.RemoveAt(index);
-                    }
-                }
-
-                if (arrayList.Count > 0)
-                {
-                    main_remain.Text = String.Format("{0}有{1}把枪支离开了监控范围", System.DateTime.Now.ToString(), arrayList.Count);
-                    foreach (String obj in arrayList)
-                    {
-                        String info = String.Format("{0}:一切正常", System.DateTime.Now.ToString());
-                        value = reader.EnableBuzzer(false);
-
-                    }
-                }
-
-
-
-                Thread.Sleep(2000);
-            }
-            Byte t = reader.EnableBuzzer(false);
-            waitHandle.Set();
-
-
-        }
-
-        private void ThreadReport()
-        {
-            waitHandle.WaitOne();
-            thread_Monitor = null;
-            main_remain.Text = "枪支监控已停止！！！";
-        }
     }
 }
